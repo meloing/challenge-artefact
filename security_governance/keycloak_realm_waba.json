@@ -1,0 +1,71 @@
+{
+  "id": "waba-realm",
+  "realm": "waba",
+  "displayName": "WestAfrica BancAssur Group Identity & Access Management",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "group_admin",
+        "description": "Accès administrateur groupe global à l'ensemble des filiales et couches de données"
+      },
+      {
+        "name": "country_analyst",
+        "description": "Analyste pays avec accès cloisonné par pays (Row-Level Security sur country_code)"
+      },
+      {
+        "name": "compliance_officer",
+        "description": "Responsable conformité : accès prioritaire aux tables Gold réglementaires BCEAO & CIMA"
+      },
+      {
+        "name": "viewer",
+        "description": "Lecteur restreint : masquage PII automatique (IBAN, numéros de compte, montants individuels anonymisés)"
+      }
+    ]
+  },
+  "groups": [
+    {
+      "name": "WABA_Executive_Leadership",
+      "realmRoles": ["group_admin"]
+    },
+    {
+      "name": "WABA_Supervisory_Compliance",
+      "realmRoles": ["compliance_officer"]
+    },
+    {
+      "name": "WABA_Local_Country_Analysts",
+      "realmRoles": ["country_analyst"]
+    },
+    {
+      "name": "WABA_General_Auditors",
+      "realmRoles": ["viewer"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "waba-superset",
+      "name": "Apache Superset Business Intelligence",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "superset-sso-secret-waba",
+      "redirectUris": ["http://localhost:8088/*", "http://superset:8088/*"],
+      "defaultClientScopes": ["web-origins", "role_list", "profile", "roles", "email"]
+    },
+    {
+      "clientId": "waba-trino",
+      "name": "Trino SQL Distributed Query Engine",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "trino-sso-secret-waba",
+      "redirectUris": ["http://localhost:8080/*", "http://trino:8080/*"],
+      "defaultClientScopes": ["web-origins", "role_list", "profile", "roles", "email"]
+    }
+  ]
+}

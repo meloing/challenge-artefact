@@ -1,0 +1,83 @@
+{
+  "catalog_tables": [
+    {
+      "table_name": "gold.daily_transaction_volume",
+      "owner": "WABA Banque Retail & Corporate",
+      "domain": "BANQUE",
+      "business_description": "KPI de premier niveau mesurant l'activité transactionnelle consolidée par pays, entité et type de canal.",
+      "regulatory_compliance": ["BCEAO_PRUDENTIAL_VOLUME", "IFRS_15"],
+      "tags": ["FINANCE", "EXECUTIVE_KPI", "REVENUES"],
+      "columns_metadata": {
+        "country_code": {"description": "Code ISO 3166-1 alpha-2 du pays d'opération", "pii": false},
+        "total_transactions": {"description": "Nombre total d'ordres traités", "pii": false},
+        "total_amount_eur": {"description": "Volume consolidé converti en Euros", "pii": false}
+      }
+    },
+    {
+      "table_name": "gold.npl_ratio_by_country",
+      "owner": "WABA Direction des Risques Groupe",
+      "domain": "RISQUE_CREDIT",
+      "business_description": "Ratio des créances douteuses (Non-Performing Loans) sur encours total, soumis à la stricte limite BCEAO de 5%.",
+      "regulatory_compliance": ["BCEAO_CIRCULAIRE_04_2017", "BASEL_II_III"],
+      "tags": ["RISK", "BCEAO_REGULATORY", "CREDIT_QUALITY"],
+      "columns_metadata": {
+        "npl_ratio": {"description": "Ratio Encours en défaut / Encours total", "pii": false},
+        "is_bceao_compliant": {"description": "Flag de conformité prudentielle (< 5%)", "pii": false}
+      }
+    },
+    {
+      "table_name": "gold.loss_ratio_by_product",
+      "owner": "WABA Assurance Vie & IARD",
+      "domain": "ASSURANCE",
+      "business_description": "Ratio Sinistres sur Primes (Loss Ratio S/P), indicateur d'équilibre technique encadré par le Code CIMA (seuil d'alerte > 70%).",
+      "regulatory_compliance": ["CODE_CIMA_ARTICLE_334"],
+      "tags": ["INSURANCE", "CIMA_REGULATORY", "SOLVENCY"],
+      "columns_metadata": {
+        "loss_ratio": {"description": "Sinistres payés / Primes acquises", "pii": false},
+        "is_cima_alert": {"description": "Alerte de surveillance si S/P > 70%", "pii": false}
+      }
+    },
+    {
+      "table_name": "gold.customer_arpu_monthly",
+      "owner": "WABA Direction Commerciale & Marketing",
+      "domain": "COMMERCE",
+      "business_description": "Revenu Moyen Par Client mensuel par pays et segment (Retail, SME, Corporate, Premium).",
+      "regulatory_compliance": ["MANAGEMENT_REPORTING"],
+      "tags": ["COMMERCIAL", "ARPU", "PROFITABILITY"],
+      "columns_metadata": {
+        "arpu_eur": {"description": "Commissions et intérêts perçus / clients actifs", "pii": false}
+      }
+    },
+    {
+      "table_name": "gold.cross_border_transfers",
+      "owner": "WABA Mobile Money",
+      "domain": "MOBILE_MONEY",
+      "business_description": "Flux régionaux transfrontaliers entre pays membres de l'UEMOA (CI, SN, BF, ML, etc.).",
+      "regulatory_compliance": ["BCEAO_INSTRUCTION_PAIEMENTS_ELECTRONIQUES"],
+      "tags": ["FINTECH", "CROSS_BORDER", "REGIONAL_INTEGRATION"],
+      "columns_metadata": {
+        "corridor": {"description": "Axe de flux (ex: CI->SN)", "pii": false}
+      }
+    }
+  ],
+  "pii_governance_rules": [
+    {
+      "field_pattern": "customer_id",
+      "classification": "PII_CONFIDENTIAL",
+      "rule": "Pseudonymiser par hachage ou masquer les chiffres intermédiaires pour les rôles non habilités (viewer)",
+      "legal_basis": "Réglementation protection des données personnelles CEDEAO & CNDP"
+    },
+    {
+      "field_pattern": "account_id",
+      "classification": "PII_RESTRICTED",
+      "rule": "Masquage standard : affichage exclusif des 4 derniers chiffres (WABA-CI-A-***1234)",
+      "legal_basis": "Secret bancaire UEMOA"
+    },
+    {
+      "field_pattern": "iban",
+      "classification": "PII_RESTRICTED",
+      "rule": "Masquage intégral sauf code pays et clé de contrôle",
+      "legal_basis": "Secret bancaire UEMOA"
+    }
+  ]
+}

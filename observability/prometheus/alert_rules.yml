@@ -1,0 +1,35 @@
+groups:
+  - name: waba_critical_pipeline_alerts
+    rules:
+      # Alerte 1 : Job Spark fraude en erreur > 5 minutes
+      - alert: SparkFraudJobFailed
+        expr: spark_streaming_active{job="WABA_Stream_Fraud_AML_Detection"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          tier: speed_layer
+        annotations:
+          summary: "Job Spark Streaming de Détection de Fraude arrêté depuis > 5 min"
+          description: "Le job Spark Structured Streaming responsable de la détection de fraude temps réel est inactif depuis plus de 5 minutes. Risque immédiat de non-détection d'opérations frauduleuses."
+
+      # Alerte 2 : Consumer Kafka AML avec lag > 5 000 messages
+      - alert: KafkaAmlConsumerLagExcessive
+        expr: kafka_consumergroup_lag{consumergroup="waba-aml-consumer",topic="silver-bank-transactions"} > 5000
+        for: 2m
+        labels:
+          severity: high
+          tier: compliance
+        annotations:
+          summary: "Lag excessif sur le consumer Kafka AML (> 5 000 messages)"
+          description: "Le pipeline de conformité AML accuse un retard de plus de 5 000 transactions non analysées. Risque de retard sur la déclaration obligatoire BCEAO/FIC."
+
+      # Alerte 3 : DAG dag_regulatory_report en échec à J+1 06h00 UTC
+      - alert: RegulatoryReportDagFailedDeadline
+        expr: (hour() >= 6) and (airflow_dag_status{dag_id="dag_regulatory_report"} != 1)
+        for: 1m
+        labels:
+          severity: disaster
+          tier: regulatory
+        annotations:
+          summary: "Échec ou non-finalisation du DAG réglementaire à J+1 06h00 UTC"
+          description: "Le rapport réglementaire quotidien pour la BCEAO et la CIMA n'a pas été validé avant l'échéance légale de 06h00 UTC. Exposition immédiate à des pénalités financières du régulateur."

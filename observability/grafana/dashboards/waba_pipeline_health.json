@@ -1,0 +1,91 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Latence des Jobs Spark Batch & Streaming (par Pays)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(spark_app_execution_time_seconds_sum[5m]) / rate(spark_app_execution_time_seconds_count[5m])",
+          "legendFormat": "Latence moyenne {{country_code}}"
+        }
+      ]
+    },
+    {
+      "title": "Lag des Consumers Kafka (Détection Fraude & AML)",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (consumergroup) (kafka_consumergroup_lag{consumergroup=~\"waba-.*\"})",
+          "legendFormat": "{{consumergroup}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 2000 },
+              { "color": "red", "value": 5000 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Débit d'Ingestion Apache NiFi (Events/sec)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(nifi_processor_bytes_written_total[1m]))",
+          "legendFormat": "Octets ingérés / sec"
+        },
+        {
+          "expr": "sum(rate(nifi_processor_flowfiles_transferred_total[1m]))",
+          "legendFormat": "FlowFiles / sec"
+        }
+      ]
+    },
+    {
+      "title": "Taux d'Échec des DAGs Airflow (Ingestion, Médaillon & Réglementaire)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(airflow_dag_failed_total) / sum(airflow_dag_run_total)",
+          "legendFormat": "Taux d'échec global"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.05 }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["waba", "lakehouse", "observability", "production"],
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "WABA Group - Pipeline Health & Operational Observability"
+}

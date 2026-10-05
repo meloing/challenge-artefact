@@ -1,0 +1,47 @@
+{
+  "serviceName": "waba_iceberg_lakehouse",
+  "lineageNodes": [
+    {
+      "fromEntity": "raw_landing.bank_transactions_csv",
+      "toEntity": "iceberg.bronze.bank_transactions",
+      "pipeline": "dag_ingest_raw",
+      "doc": "Ingestion brute validée avec contrôles de schéma et devises"
+    },
+    {
+      "fromEntity": "iceberg.bronze.bank_transactions",
+      "toEntity": "iceberg.silver.bank_transactions",
+      "pipeline": "dag_bronze_to_silver",
+      "doc": "Déduplication transaction_id, enrichissement référentiels, conversion EUR, masquage PII"
+    },
+    {
+      "fromEntity": "iceberg.silver.bank_transactions",
+      "toEntity": "iceberg.gold.daily_transaction_volume",
+      "pipeline": "dag_silver_to_gold",
+      "doc": "Agrégation journalière des volumes, montants et taux de succès par pays"
+    },
+    {
+      "fromEntity": "iceberg.silver.loan_repayments",
+      "toEntity": "iceberg.gold.npl_ratio_by_country",
+      "pipeline": "dag_silver_to_gold",
+      "doc": "Calcul ratio créances douteuses (NPL) vs seuil BCEAO 5%"
+    },
+    {
+      "fromEntity": "iceberg.silver.insurance_operations",
+      "toEntity": "iceberg.gold.loss_ratio_by_product",
+      "pipeline": "dag_silver_to_gold",
+      "doc": "Ratio sinistres/primes (Loss Ratio) vs seuil CIMA 70%"
+    },
+    {
+      "fromEntity": "iceberg.silver.mobile_money_payments",
+      "toEntity": "iceberg.gold.cross_border_transfers",
+      "pipeline": "dag_silver_to_gold",
+      "doc": "Analyse des flux entre couloirs régionaux UEMOA"
+    },
+    {
+      "fromEntity": "iceberg.gold.npl_ratio_by_country",
+      "toEntity": "iceberg.gold.regulatory_bceao_daily",
+      "pipeline": "dag_regulatory_report",
+      "doc": "Déclaration prudentielle consolidée J+1 BCEAO à 00h30 UTC"
+    }
+  ]
+}
