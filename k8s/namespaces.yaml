@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingestion
+  labels:
+    waba.domain: ingestion
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: processing
+  labels:
+    waba.domain: processing
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: serving
+  labels:
+    waba.domain: serving
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: governance
+  labels:
+    waba.domain: governance
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    waba.domain: monitoring
+    environment: production
