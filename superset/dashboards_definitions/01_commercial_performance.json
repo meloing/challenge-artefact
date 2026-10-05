@@ -1,0 +1,50 @@
+{
+  "dashboard_title": "WABA Group - Performance Commerciale Groupe (Dashboard 1)",
+  "description": "Vue exécutive consolidée des 8 pays et 4 lignes de métier (Banque, Assurance, Mobile Money, Microfinance)",
+  "charts": [
+    {
+      "slice_name": "Revenus Consolidés par Pays et Ligne Métier",
+      "viz_type": "dist_bar",
+      "params": {
+        "metrics": ["sum__total_amount_eur"],
+        "groupby": ["country_code", "entity_type"],
+        "bar_stacked": false,
+        "y_axis_format": "$,.2f",
+        "adhoc_filters": []
+      },
+      "query": "SELECT country_code, entity_type, SUM(total_amount_eur) AS total_amount_eur FROM iceberg.gold.daily_transaction_volume GROUP BY country_code, entity_type"
+    },
+    {
+      "slice_name": "Évolution Mensuelle de l'ARPC (Revenu Moyen Par Client)",
+      "viz_type": "line",
+      "params": {
+        "metrics": ["avg__arpu_eur"],
+        "groupby": ["month_year", "customer_segment"],
+        "x_axis": "month_year",
+        "y_axis_format": "$,.2f"
+      },
+      "query": "SELECT month_year, customer_segment, AVG(arpu_eur) AS arpu_eur FROM iceberg.gold.customer_arpu_monthly GROUP BY month_year, customer_segment ORDER BY month_year"
+    },
+    {
+      "slice_name": "Carte Choroplèthe de l'Afrique de l'Ouest (Contribution Revenus)",
+      "viz_type": "country_map",
+      "params": {
+        "select_country": "West_Africa",
+        "entity": "country_code",
+        "metric": "sum__total_amount_eur",
+        "linear_color_scheme": "schemeGreens"
+      },
+      "query": "SELECT country_code, SUM(total_amount_eur) AS total_amount_eur FROM iceberg.gold.daily_transaction_volume GROUP BY country_code"
+    },
+    {
+      "slice_name": "Top 10 des Produits les Plus Souscrits par Pays",
+      "viz_type": "table",
+      "params": {
+        "metrics": ["count__subscriptions"],
+        "groupby": ["country_code", "product_name", "entity_type"],
+        "row_limit": 10
+      },
+      "query": "SELECT country_code, name AS product_name, entity_type, COUNT(*) AS count__subscriptions FROM iceberg.bronze.products JOIN iceberg.bronze.accounts ON 1=1 GROUP BY country_code, name, entity_type ORDER BY count__subscriptions DESC LIMIT 10"
+    }
+  ]
+}

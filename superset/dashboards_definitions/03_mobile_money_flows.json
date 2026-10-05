@@ -1,0 +1,38 @@
+{
+  "dashboard_title": "WABA Group - Mobile Money & Transferts Transfrontaliers (Dashboard 3)",
+  "description": "Suivi opérationnel des paiements digitaux, saturation des couloirs régionaux UEMOA et fiabilité télécom",
+  "charts": [
+    {
+      "slice_name": "Flux de Paiements Mobile Money par Pays et par Heure (Heatmap)",
+      "viz_type": "heatmap",
+      "params": {
+        "all_columns_x": "hour_of_day",
+        "all_columns_y": "country_code",
+        "metric": "sum__volume_eur",
+        "linear_color_scheme": "blue_white_yellow"
+      },
+      "query": "SELECT EXTRACT(HOUR FROM timestamp) AS hour_of_day, country_code, SUM(amount_eur) AS sum__volume_eur FROM iceberg.silver.mobile_money_payments GROUP BY EXTRACT(HOUR FROM timestamp), country_code"
+    },
+    {
+      "slice_name": "Top 5 des Corridors Transfrontaliers UEMOA (CI->SN, CI->ML...)",
+      "viz_type": "bar",
+      "params": {
+        "metrics": ["sum__total_volume_eur"],
+        "groupby": ["corridor"],
+        "row_limit": 5,
+        "y_axis_format": "$,.2f"
+      },
+      "query": "SELECT corridor, SUM(total_volume_eur) AS sum__total_volume_eur, SUM(transfer_count) AS total_transfers FROM iceberg.gold.cross_border_transfers GROUP BY corridor ORDER BY sum__total_volume_eur DESC LIMIT 5"
+    },
+    {
+      "slice_name": "Taux d'Échec des Transactions par Opérateur et Pays",
+      "viz_type": "dist_bar",
+      "params": {
+        "metrics": ["avg__failure_rate_pct"],
+        "groupby": ["operator", "country_code"],
+        "y_axis_format": ".2%"
+      },
+      "query": "SELECT operator, country_code, ROUND(AVG(failure_rate) * 100, 2) AS avg__failure_rate_pct FROM iceberg.gold.mobile_money_daily_flow GROUP BY operator, country_code ORDER BY avg__failure_rate_pct DESC"
+    }
+  ]
+}

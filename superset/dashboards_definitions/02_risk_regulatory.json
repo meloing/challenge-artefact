@@ -1,0 +1,49 @@
+{
+  "dashboard_title": "WABA Group - Risque & Conformité Réglementaire (Dashboard 2)",
+  "description": "Supervision prudentielle BCEAO & CIMA, surveillance du risque de crédit (NPL), ratios de solvabilité et alertes AML",
+  "charts": [
+    {
+      "slice_name": "Taux NPL par Pays (Prêts Douteux vs Seuil BCEAO 5%)",
+      "viz_type": "gauge",
+      "params": {
+        "metric": "avg__npl_percentage",
+        "groupby": ["country_code"],
+        "intervals": [0, 3, 5, 10],
+        "interval_colors": ["#2ECC71", "#F39C12", "#E74C3C"],
+        "subheader": "Vert: <3% (Sain) | Orange: 3-5% (Vigilance) | Rouge: >5% (Alerte BCEAO)"
+      },
+      "query": "SELECT country_code, loan_type, ROUND(npl_ratio * 100, 2) AS npl_percentage, risk_status FROM iceberg.gold.npl_ratio_by_country"
+    },
+    {
+      "slice_name": "Loss Ratio Assurance par Produit (Seuil CIMA 70%)",
+      "viz_type": "dist_bar",
+      "params": {
+        "metrics": ["loss_ratio_pct"],
+        "groupby": ["product_line", "country_code"],
+        "y_axis_format": ".1%",
+        "threshold_line": 70.0,
+        "threshold_color": "red"
+      },
+      "query": "SELECT product_line, country_code, ROUND(loss_ratio * 100, 2) AS loss_ratio_pct, is_cima_alert FROM iceberg.gold.loss_ratio_by_product"
+    },
+    {
+      "slice_name": "Volume d'Alertes AML par Jour et par Pays (Évolution 30 Jours)",
+      "viz_type": "line",
+      "params": {
+        "metrics": ["count__aml_events"],
+        "groupby": ["event_date", "country_code"],
+        "x_axis": "event_date"
+      },
+      "query": "SELECT CAST(detection_timestamp AS DATE) AS event_date, country_code, COUNT(*) AS count__aml_events FROM kafka.default.\"gold-aml-events\" GROUP BY CAST(detection_timestamp AS DATE), country_code ORDER BY event_date"
+    },
+    {
+      "slice_name": "Tableau de Bord des Sinistres : Délai Moyen vs SLA Contractuel (30j)",
+      "viz_type": "table",
+      "params": {
+        "metrics": ["avg_processing_days", "sla_breach_rate_pct"],
+        "groupby": ["country_code", "product_line"]
+      },
+      "query": "SELECT country_code, product_line, avg_processing_days, ROUND(sla_breach_rate * 100, 2) AS sla_breach_rate_pct, total_processed_claims FROM iceberg.gold.claims_processing_time ORDER BY avg_processing_days DESC"
+    }
+  ]
+}
