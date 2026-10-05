@@ -1,0 +1,83 @@
+{
+  "encodingVersion": {
+    "majorVersion": 2,
+    "minorVersion": 0
+  },
+  "flow": {
+    "identifier": "waba-nifi-s3-to-kafka",
+    "name": "WABA_Raw_Landing_To_Kafka_Flow",
+    "comments": "Ingests CSV files from MinIO raw-landing bucket, converts rows to enriched JSON events, and publishes to Kafka topics with backpressure.",
+    "processors": [
+      {
+        "identifier": "proc-list-s3",
+        "name": "ListS3_RawLanding",
+        "type": "org.apache.nifi.processors.aws.s3.ListS3",
+        "properties": {
+          "Bucket": "raw-landing",
+          "Endpoint Override URL": "http://minio:9000",
+          "Access Key": "${MINIO_ROOT_USER}",
+          "Secret Key": "${MINIO_ROOT_PASSWORD}",
+          "Signer Override": "S3V4SignerType",
+          "listing-strategy": "timestamps",
+          "write-credentials": "false"
+        },
+        "schedulingPeriod": "10 sec",
+        "backpressure": {
+          "countThreshold": 10000,
+          "sizeThreshold": "1 GB"
+        }
+      },
+      {
+        "identifier": "proc-fetch-s3",
+        "name": "FetchS3Object_RawLanding",
+        "type": "org.apache.nifi.processors.aws.s3.FetchS3Object",
+        "properties": {
+          "Bucket": "raw-landing",
+          "Object Key": "${filename}",
+          "Endpoint Override URL": "http://minio:9000",
+          "Access Key": "${MINIO_ROOT_USER}",
+          "Secret Key": "${MINIO_ROOT_PASSWORD}"
+        },
+        "backpressure": {
+          "countThreshold": 5000,
+          "sizeThreshold": "500 MB"
+        }
+      },
+      {
+        "identifier": "proc-convert-csv-json",
+        "name": "ConvertCSVToJSON",
+        "type": "org.apache.nifi.processors.standard.ConvertRecord",
+        "properties": {
+          "record-reader": "CSVReader",
+          "record-writer": "JsonRecordSetWriter"
+        }
+      },
+      {
+        "identifier": "proc-enrich-metadata",
+        "name": "UpdateAttribute_EnrichMetadata",
+        "type": "org.apache.nifi.processors.attributes.UpdateAttribute",
+        "properties": {
+          "ingestion_timestamp": "${now():format(\"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\")}",
+          "source_file": "${filename}",
+          "kafka_topic": "${filename:startsWith('bank_txn'):ifElse('raw-bank-transactions', ${filename:startsWith('insurance_ops'):ifElse('raw-insurance-operations', ${filename:startsWith('mobile_money'):ifElse('raw-mobile-money-payments', 'raw-loan-repayments')})})}"
+        }
+      },
+      {
+        "identifier": "proc-publish-kafka",
+        "name": "PublishKafka_RawEvents",
+        "type": "org.apache.nifi.processors.kafka.pubsub.PublishKafka_2_6",
+        "properties": {
+          "bootstrap.servers": "kafka:9092",
+          "topic": "${kafka_topic}",
+          "acks": "all",
+          "use-transactions": "false",
+          "message-header-encoding": "UTF-8"
+        },
+        "backpressure": {
+          "countThreshold": 20000,
+          "sizeThreshold": "2 GB"
+        }
+      }
+    ]
+  }
+}
