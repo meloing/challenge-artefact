@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Environment Variables
+.env
+
+# Storage and checkpoints
+storage/
+/tmp/spark-checkpoints/
+/tmp/positions.yaml
+.pytest_cache/
+
+# OS specific
+.DS_Store
+Thumbs.db
